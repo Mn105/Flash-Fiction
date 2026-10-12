@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Fiction - Grade 7 Writing Game</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --text-color: #f8fafc;
+            --accent-cheetah: #eab308;
+            --accent-tiger: #f97316;
+            --accent-jaguar: #a855f7;
+            --accent-leopard: #3b82f6;
+            --primary: #6366f1;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--panel-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        h1, h2, h3 { text-align: center; color: #38bdf8; }
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: block;
+            width: 100%;
+            margin-top: 15px;
+        }
+        .btn:hover { background-color: #4f46e5; }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: white;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .hidden { display: none !important; }
+        .flex-row { display: flex; gap: 15px; }
+        .team-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .Cheetah { background: var(--accent-cheetah); color: black; }
+        .Tiger { background: var(--accent-tiger); color: black; }
+        .Jaguar { background: var(--accent-jaguar); color: white; }
+        .Leopard { background: var(--accent-leopard); color: white; }
+        .timer-display {
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            color: #f43f5e;
+            margin: 20px 0;
+        }
+        .scoreboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .score-card {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-top: 4px solid var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="app">
+    <!-- VIEW: ROLE SELECTION -->
+    <div id="view-home">
+        <h1>⚡ Flash Fiction: Grade 7 Arena</h1>
+        <p style="text-align: center;">Enter the gamified writing dashboard.</p>
+        <button class="btn" onclick="showStudentLogin()">Join as Student</button>
+        <button class="btn" style="background-color: #334155;" onclick="showTeacherLogin()">Teacher Dashboard (PIN #105)</button>
+    </div>
+
+    <!-- VIEW: STUDENT LOGIN -->
+    <div id="view-student-login" class="hidden">
+        <h2>Student Login</h2>
+        <input type="text" id="student-name" placeholder="Enter your display name...">
+        <button class="btn" onclick="registerStudent()">Enter Arena</button>
+        <button class="btn" style="background-color: #334155;" onclick="location.reload()">Back</button>
+    </div>
+
+    <!-- VIEW: TEACHER LOGIN -->
+    <div id="view-teacher-login" class="hidden">
+        <h2>Teacher Authentication</h2>
+        <input type="password" id="teacher-pin" placeholder="Enter Teacher PIN (#105)...">
+        <button class="btn" onclick="verifyTeacherPIN()">Unlock Dashboard</button>
+        <button class="btn" style="background-color: #334155;" onclick="location.reload()">Back</button>
+    </div>
+
+    <!-- VIEW: STUDENT DASHBOARD -->
+    <div id="view-student-dashboard" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 id="student-welcome">Welcome</h3>
+            <div id="assigned-team-badge" class="team-badge">Team</div>
+        </div>
+        <hr style="border-color: #475569;">
+        <div id="prompt-container">
+            <h3 id="current-prompt-title">Waiting for teacher to start round...</h3>
+            <p id="current-prompt-text" style="font-style: italic; text-align: center;"></p>
+        </div>
+        <div id="timer-box" class="timer-display hidden">03:00</div>
+        <textarea id="writing-area" rows="8" placeholder="Your writing engine is locked until the round starts..." disabled></textarea>
+        <button id="submit-writing-btn" class="btn hidden" onclick="submitWriting()">Submit Flash Fiction</button>
+    </div>
+
+    <!-- VIEW: TEACHER DASHBOARD -->
+    <div id="view-teacher-dashboard" class="hidden">
+        <h2>Teacher Control Panel (PIN Verified)</h2>
+        <div class="scoreboard">
+            <div class="score-card" style="border-color: var(--accent-cheetah);"> Cheetahs <br><span id="score-cheetah">0</span> pts</div>
+            <div class="score-card" style="border-color: var(--accent-tiger);"> Tigers <br><span id="score-tiger">0</span> pts</div>
+            <div class="score-card" style="border-color: var(--accent-jaguar);"> Jaguars <br><span id="score-jaguar">0</span> pts</div>
+            <div class="score-card" style="border-color: var(--accent-leopard);"> Leopards <br><span id="score-leopard">0</span> pts</div>
+        </div>
+        <hr style="border-color: #475569;">
+        <h3>Round Management</h3>
+        <p><strong>Current Round:</strong> <span id="teacher-round-num">1</span> of 4</p>
+        <p id="teacher-active-prompt" style="background: #0f172a; padding: 10px; border-radius: 6px;">Prompt: Cyberpunk trash-realm</p>
+        <button class="btn" onclick="startRound()">Start 3-Minute Writing Sprint</button>
+        <button class="btn" style="background-color: #e11d48;" onclick="resetRound()">Reset Round</button>
+    </div>
+</div>
+
+<script>
+    // Game State Data
+    const teams = ['Cheetah', 'Tiger', 'Jaguar', 'Leopard'];
+    let gameState = {
+        role: null,
+        studentName: '',
+        team: '',
+        round: 1,
+        scores: { Cheetah: 0, Tiger: 0, Jaguar: 0, Leopard: 0 },
+        timerInterval: null,
+        timeLeft: 180
+    };
+
+    const promptsLibrary = [
+        { title: "Floating Cyberpunk Island", text: "You just respawned on the wrong side of the floating trash-realm. Describe your immediate surroundings using sensory details." },
+        { title: "Glowing Mushroom Forest", text: "Write a scene from the perspective of an explorer trying to catch a high-speed 'Mega-Gig' jellyfish before it swims out of reach." },
+        { title: "Overgrown Mega-Mall", text: "Describe the atmosphere as a mysterious skater glides past a frozen-in-time food court." },
+        { title: "Upside-Down Hourglass", text: "Set the scene in a world where time runs in reverse every afternoon. What are townspeople trying to catch or un-break?" }
+    ];
+
+    function showStudentLogin() {
+        document.getElementById('view-home').classList.add('hidden');
+        document.getElementById('view-student-login').classList.remove('hidden');
+    }
+
+    function showTeacherLogin() {
+        document.getElementById('view-home').classList.add('hidden');
+        document.getElementById('view-teacher-login').classList.remove('hidden');
+    }
+
+    function verifyTeacherPIN() {
+        const pin = document.getElementById('teacher-pin').value;
+        if (pin === '105') {
+            document.getElementById('view-teacher-login').classList.add('hidden');
+            document.getElementById('view-teacher-dashboard').classList.remove('hidden');
+        } else {
+            alert('Incorrect PIN. Try #105');
+        }
+    }
+
+    function registerStudent() {
+        const nameInput = document.getElementById('student-name').value.trim();
+        if (!nameInput) {
+            alert('Please enter a display name.');
+            return;
+        }
+        gameState.studentName = nameInput;
+        gameState.team = teams[Math.floor(Math.random() * teams.length)];
+
+        document.getElementById('view-student-login').classList.add('hidden');
+        document.getElementById('view-student-dashboard').classList.remove('hidden');
+
+        document.getElementById('student-welcome').innerText = `Player: ${gameState.studentName}`;
+        const badge = document.getElementById('assigned-team-badge');
+        badge.innerText = `Squad: ${gameState.team}`;
+        badge.className = `team-badge ${gameState.team}`;
+
+        loadPromptToStudent(0);
+    }
+
+    function loadPromptToStudent(index) {
+        const p = promptsLibrary[index];
+        document.getElementById('current-prompt-title').innerText = p.title;
+        document.getElementById('current-prompt-text').innerText = p.text;
+    }
+
+    function startRound() {
+        alert('Round started! 3-minute timer activated on all student screens.');
+        document.getElementById('writing-area').disabled = false;
+        document.getElementById('writing-area').placeholder = 'Write your flash fiction here...';
+        document.getElementById('submit-writing-btn').classList.remove('hidden');
+        document.getElementById('timer-box').classList.remove('hidden');
+        
+        gameState.timeLeft = 180;
+        clearInterval(gameState.timerInterval);
+        gameState.timerInterval = setInterval(() => {
+            gameState.timeLeft--;
+            let mins = Math.floor(gameState.timeLeft / 60);
+            let secs = gameState.timeLeft % 60;
+            document.getElementById('timer-box').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            if (gameState.timeLeft <= 0) {
+                clearInterval(gameState.timerInterval);
+                alert('Time is up! Writing locked.');
+                document.getElementById('writing-area').disabled = true;
+            }
+        }, 1000);
+    }
+
+    function submitWriting() {
+        const text = document.getElementById('writing-area').value;
+        if (!text.trim()) {
+            alert('Writing area is empty!');
+            return;
+        }
+        alert('Flash fiction submitted successfully to your team ledger!');
+        document.getElementById('writing-area').disabled = true;
+        document.getElementById('submit-writing-btn').classList.add('hidden');
+    }
+
+    function resetRound() {
+        clearInterval(gameState.timerInterval);
+        document.getElementById('timer-box').classList.add('hidden');
+        document.getElementById('writing-area').value = '';
+        document.getElementById('writing-area').disabled = true;
+        alert('Round reset successfully.');
+    }
+</script>
+
+</body>
+</html>
